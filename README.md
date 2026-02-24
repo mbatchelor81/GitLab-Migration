@@ -1,7 +1,5 @@
 # ![RealWorld Example App using Kotlin and Spring](example-logo.png)
 
-[![Actions](https://github.com/gothinkster/spring-boot-realworld-example-app/workflows/Java%20CI/badge.svg)](https://github.com/gothinkster/spring-boot-realworld-example-app/actions)
-
 > ### Spring boot + MyBatis codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld-example-apps) spec and API.
 
 This codebase was created to demonstrate a fully fledged full-stack application built with Spring boot + Mybatis including CRUD operations, authentication, routing, pagination, and more.
@@ -12,7 +10,7 @@ For more information on how to this works with other frontends/backends, head ov
 
 Following some DDD principles. REST or GraphQL is just a kind of adapter. And the domain layer will be consistent all the time. So this repository implement GraphQL and REST at the same time.
 
-The GraphQL schema is https://github.com/gothinkster/spring-boot-realworld-example-app/blob/master/src/main/resources/schema/schema.graphqls and the visualization looks like below.
+The GraphQL schema is [schema.graphqls](src/main/resources/schema/schema.graphqls) and the visualization looks like below.
 
 ![](graphql-schema.png)
 
@@ -124,4 +122,4 @@ Use spotless for code format.
 
 # Help
 
-Please fork and PR to improve the project.
+Please fork and submit a Merge Request to improve the project.
