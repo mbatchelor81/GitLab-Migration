@@ -12,6 +12,7 @@ pipeline {
     }
 
     tools {
+        jdk 'JDK-11'
         gradle 'Gradle-7.4'
         nodejs 'Node-16'
     }
