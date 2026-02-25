@@ -5,6 +5,8 @@ CONTAINER_NAME="jenkins-demo"
 JENKINS_PORT=8080
 AGENT_PORT=50000
 VOLUME_NAME="jenkins_demo_home"
+IMAGE_NAME="jenkins-demo-docker"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 usage() {
     echo "Usage: $0 {start|stop|restart|status|logs|password}"
@@ -21,6 +23,9 @@ start() {
         echo "Starting existing Jenkins container..."
         docker start "${CONTAINER_NAME}"
     else
+        echo "Building custom Jenkins image with Docker CLI..."
+        docker build -t "${IMAGE_NAME}" -f "${SCRIPT_DIR}/jenkins.Dockerfile" "${SCRIPT_DIR}"
+
         echo "Creating and starting Jenkins container..."
         docker run -d \
             --name "${CONTAINER_NAME}" \
@@ -28,7 +33,7 @@ start() {
             -p "${AGENT_PORT}:50000" \
             -v "${VOLUME_NAME}:/var/jenkins_home" \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            jenkins/jenkins:lts
+            "${IMAGE_NAME}"
     fi
 
     echo ""
