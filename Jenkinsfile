@@ -59,11 +59,7 @@ pipeline {
             }
             post {
                 always {
-                    publishHTML(target: [
-                        reportDir:   'build/reports/jacoco/test/html',
-                        reportFiles: 'index.html',
-                        reportName:  'JaCoCo Coverage Report'
-                    ])
+                    archiveArtifacts artifacts: 'build/reports/jacoco/test/html/**', allowEmptyArchive: true
                 }
             }
         }
@@ -165,11 +161,7 @@ pipeline {
             }
             post {
                 always {
-                    publishHTML(target: [
-                        reportDir:   'build/reports/tests/seleniumTest',
-                        reportFiles: 'index.html',
-                        reportName:  'Selenium E2E Report'
-                    ])
+                    archiveArtifacts artifacts: 'build/reports/tests/seleniumTest/**', allowEmptyArchive: true
                 }
             }
         }
