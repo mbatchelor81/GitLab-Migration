@@ -1,7 +1,7 @@
 FROM jenkins/jenkins:lts
 USER root
 RUN apt-get update && \
-    apt-get install -y docker.io wget curl unzip && \
+    apt-get install -y docker.io wget curl unzip chromium chromium-driver && \
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl" && \
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
     rm kubectl && \
@@ -15,5 +15,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     echo '#!/bin/bash\nchmod 666 /var/run/docker.sock 2>/dev/null || true\nexec /usr/bin/tini -- /usr/local/bin/jenkins.sh "$@"' > /usr/local/bin/docker-entrypoint.sh && \
     chmod +x /usr/local/bin/docker-entrypoint.sh
+ENV CHROME_BIN=/usr/bin/chromium
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 USER jenkins

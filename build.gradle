@@ -105,6 +105,9 @@ tasks.register('seleniumTest', Test) {
 		suites 'src/test/resources/selenium/testng-smoke.xml'
 	}
 	
+	// Pass system properties to the test JVM
+	systemProperty 'headless', System.getProperty('headless', 'false')
+	
 	// Only include Selenium tests
 	include 'io/spring/selenium/**'
 	

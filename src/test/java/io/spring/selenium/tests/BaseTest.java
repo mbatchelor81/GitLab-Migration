@@ -136,11 +136,18 @@ public abstract class BaseTest {
         break;
       case "chrome":
       default:
-        WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
-        if (Boolean.parseBoolean(config.getProperty("headless", "false"))) {
+        String chromeBin = System.getenv("CHROME_BIN");
+        if (chromeBin != null && !chromeBin.isEmpty()) {
+          options.setBinary(chromeBin);
+        }
+        WebDriverManager.chromedriver().setup();
+        String headless = System.getProperty("headless", config.getProperty("headless", "false"));
+        if (Boolean.parseBoolean(headless)) {
           options.addArguments("--headless");
         }
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
         driver = new ChromeDriver(options);
         break;
     }

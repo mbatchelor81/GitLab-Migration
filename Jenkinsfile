@@ -150,7 +150,7 @@ pipeline {
                 branch 'master'
             }
             steps {
-                sh './gradlew seleniumTest --no-daemon'
+                sh './gradlew seleniumTest --no-daemon -Dheadless=true'
             }
             post {
                 always {
