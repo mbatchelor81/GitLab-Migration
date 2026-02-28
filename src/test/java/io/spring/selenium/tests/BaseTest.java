@@ -140,8 +140,10 @@ public abstract class BaseTest {
         String chromeBin = System.getenv("CHROME_BIN");
         if (chromeBin != null && !chromeBin.isEmpty()) {
           options.setBinary(chromeBin);
+          System.setProperty("webdriver.chrome.driver", "/usr/bin/chromedriver");
+        } else {
+          WebDriverManager.chromedriver().setup();
         }
-        WebDriverManager.chromedriver().setup();
         String headless = System.getProperty("headless", config.getProperty("headless", "false"));
         if (Boolean.parseBoolean(headless)) {
           options.addArguments("--headless");
