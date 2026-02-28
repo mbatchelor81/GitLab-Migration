@@ -96,22 +96,16 @@ pipeline {
                 sh "echo ${GITLAB_CREDS_PSW} | docker login ${REGISTRY} -u ${GITLAB_CREDS_USR} --password-stdin"
                 sh "docker buildx create --name multiarch --use 2>/dev/null || docker buildx use multiarch"
                 sh "docker buildx inspect --bootstrap"
-                parallel(
-                    'Build & Push Backend': {
-                        sh """docker buildx build \\
-                            --platform linux/amd64,linux/arm64 \\
-                            -t ${BACKEND_IMAGE}:${IMAGE_TAG} \\
-                            -t ${BACKEND_IMAGE}:latest \\
-                            --push ."""
-                    },
-                    'Build & Push Frontend': {
-                        sh """docker buildx build \\
-                            --platform linux/amd64,linux/arm64 \\
-                            -t ${FRONTEND_IMAGE}:${IMAGE_TAG} \\
-                            -t ${FRONTEND_IMAGE}:latest \\
-                            --push ./frontend"""
-                    }
-                )
+                sh """docker buildx build \
+                    --platform linux/amd64,linux/arm64 \
+                    -t ${BACKEND_IMAGE}:${IMAGE_TAG} \
+                    -t ${BACKEND_IMAGE}:latest \
+                    --push ."""
+                sh """docker buildx build \
+                    --platform linux/amd64,linux/arm64 \
+                    -t ${FRONTEND_IMAGE}:${IMAGE_TAG} \
+                    -t ${FRONTEND_IMAGE}:latest \
+                    --push ./frontend"""
             }
             post {
                 always {
