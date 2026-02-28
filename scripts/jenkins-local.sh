@@ -33,6 +33,9 @@ start() {
             -p "${AGENT_PORT}:50000" \
             -v "${VOLUME_NAME}:/var/jenkins_home" \
             -v /var/run/docker.sock:/var/run/docker.sock \
+            -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-}" \
+            -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-}" \
+            -e AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-2}" \
             "${IMAGE_NAME}"
     fi
 

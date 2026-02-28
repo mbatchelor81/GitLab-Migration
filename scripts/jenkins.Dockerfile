@@ -1,10 +1,12 @@
 FROM jenkins/jenkins:lts
 USER root
 RUN apt-get update && \
-    apt-get install -y docker.io wget curl && \
+    apt-get install -y docker.io wget curl unzip && \
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl" && \
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
     rm kubectl && \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o /tmp/awscliv2.zip && \
+    cd /tmp && unzip awscliv2.zip && ./aws/install && rm -rf /tmp/aws /tmp/awscliv2.zip && cd / && \
     usermod -aG docker jenkins && \
     wget -q https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.25%2B9/OpenJDK11U-jdk_aarch64_linux_hotspot_11.0.25_9.tar.gz -O /tmp/jdk11.tar.gz && \
     mkdir -p /opt/java/jdk-11 && \
