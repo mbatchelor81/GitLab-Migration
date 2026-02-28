@@ -5,7 +5,7 @@ metadata:
   labels:
     app: realworld-backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: realworld-backend
@@ -26,11 +26,11 @@ spec:
               value: "production"
           resources:
             requests:
-              cpu: "250m"
-              memory: "512Mi"
+              cpu: "200m"
+              memory: "384Mi"
             limits:
               cpu: "500m"
-              memory: "1Gi"
+              memory: "768Mi"
           readinessProbe:
             tcpSocket:
               port: 8080
