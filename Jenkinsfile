@@ -129,6 +129,9 @@ pipeline {
                         sed -i 's|image: .*backend:.*|image: ${BACKEND_IMAGE}:${IMAGE_TAG}|' k8s/backend-deployment.yaml
                         sed -i 's|image: .*frontend:.*|image: ${FRONTEND_IMAGE}:${IMAGE_TAG}|' k8s/frontend-deployment.yaml
 
+                        # Use a staging-specific host to avoid ingress conflict with production
+                        sed -i 's|realworld.example.com|staging.realworld.example.com|g' k8s/ingress.yaml
+
                         kubectl apply -f k8s/backend-deployment.yaml  -n ${K8S_NAMESPACE}-staging
                         kubectl apply -f k8s/frontend-deployment.yaml -n ${K8S_NAMESPACE}-staging
                         kubectl apply -f k8s/ingress.yaml             -n ${K8S_NAMESPACE}-staging
@@ -182,6 +185,9 @@ pipeline {
                     sh """
                         sed -i 's|image: .*backend:.*|image: ${BACKEND_IMAGE}:${IMAGE_TAG}|' k8s/backend-deployment.yaml
                         sed -i 's|image: .*frontend:.*|image: ${FRONTEND_IMAGE}:${IMAGE_TAG}|' k8s/frontend-deployment.yaml
+
+                        # Restore production host in ingress (staging sed may have changed it)
+                        sed -i 's|staging.realworld.example.com|realworld.example.com|g' k8s/ingress.yaml
 
                         kubectl apply -f k8s/backend-deployment.yaml  -n ${K8S_NAMESPACE}
                         kubectl apply -f k8s/frontend-deployment.yaml -n ${K8S_NAMESPACE}
