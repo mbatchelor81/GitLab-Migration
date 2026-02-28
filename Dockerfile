@@ -9,7 +9,7 @@ COPY src ./src
 RUN ./gradlew bootJar --no-daemon -x test
 
 # Stage 2: Run the application
-FROM eclipse-temurin:11-jre-alpine
+FROM eclipse-temurin:11-jre-focal
 WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080

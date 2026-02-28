@@ -7,5 +7,8 @@ RUN apt-get update && \
     mkdir -p /opt/java/jdk-11 && \
     tar -xzf /tmp/jdk11.tar.gz -C /opt/java/jdk-11 --strip-components=1 && \
     rm /tmp/jdk11.tar.gz && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    echo '#!/bin/bash\nchmod 666 /var/run/docker.sock 2>/dev/null || true\nexec /usr/bin/tini -- /usr/local/bin/jenkins.sh "$@"' > /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 USER jenkins
