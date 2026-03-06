@@ -122,4 +122,4 @@ Use spotless for code format.
 
 # Help
 
-Please fork and submit a Merge Request to improve the project.
+Please fork and submit a Pull Request to improve the project.

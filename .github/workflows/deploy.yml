@@ -1,0 +1,134 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["Docker Build & Push"]
+    types: [completed]
+    branches: [master, main]
+
+env:
+  K8S_NAMESPACE: realworld
+
+jobs:
+  staging:
+    name: "Deploy to Staging"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 15
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Extract short SHA
+        id: sha
+        run: echo "short=$(echo ${{ github.event.workflow_run.head_sha }} | cut -c1-8)" >> "$GITHUB_OUTPUT"
+
+      # Configure KUBECONFIG_STAGING as a GitHub Actions secret containing
+      # the base64-encoded kubeconfig for your staging Kubernetes cluster.
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+
+      - name: Update image tags in manifests
+        run: |
+          BACKEND_IMAGE="ghcr.io/${{ github.repository }}/backend"
+          FRONTEND_IMAGE="ghcr.io/${{ github.repository }}/frontend"
+          TAG="${{ steps.sha.outputs.short }}"
+          sed -i "s|image: .*backend:.*|image: ${BACKEND_IMAGE}:${TAG}|" k8s/backend-deployment.yaml
+          sed -i "s|image: .*frontend:.*|image: ${FRONTEND_IMAGE}:${TAG}|" k8s/frontend-deployment.yaml
+          # Use staging-specific host to avoid ingress conflict with production
+          sed -i 's|realworld.example.com|staging.realworld.example.com|g' k8s/ingress.yaml
+
+      - name: Apply K8s manifests to staging
+        run: |
+          kubectl apply -f k8s/backend-deployment.yaml  -n ${K8S_NAMESPACE}-staging
+          kubectl apply -f k8s/frontend-deployment.yaml -n ${K8S_NAMESPACE}-staging
+          kubectl apply -f k8s/ingress.yaml             -n ${K8S_NAMESPACE}-staging
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/realworld-backend  -n ${K8S_NAMESPACE}-staging --timeout=120s
+          kubectl rollout status deployment/realworld-frontend -n ${K8S_NAMESPACE}-staging --timeout=120s
+
+  e2e-tests:
+    name: "E2E Tests (Selenium)"
+    runs-on: ubuntu-latest
+    needs: staging
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up JDK 11 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Selenium E2E tests
+        run: ./gradlew seleniumTest --no-daemon -Dheadless=true
+
+      - name: Upload E2E test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selenium-e2e-report
+          path: build/reports/tests/seleniumTest/
+
+  production:
+    name: "Deploy to Production"
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    timeout-minutes: 15
+    # Requires manual approval via GitHub Environments.
+    # Configure the "production" environment in Settings > Environments
+    # and add required reviewers for the approval gate.
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Extract short SHA
+        id: sha
+        run: echo "short=$(echo ${{ github.event.workflow_run.head_sha }} | cut -c1-8)" >> "$GITHUB_OUTPUT"
+
+      # Configure KUBECONFIG_PRODUCTION as a GitHub Actions secret containing
+      # the base64-encoded kubeconfig for your production Kubernetes cluster.
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_PRODUCTION }}" | base64 -d > $HOME/.kube/config
+
+      - name: Update image tags in manifests
+        run: |
+          BACKEND_IMAGE="ghcr.io/${{ github.repository }}/backend"
+          FRONTEND_IMAGE="ghcr.io/${{ github.repository }}/frontend"
+          TAG="${{ steps.sha.outputs.short }}"
+          sed -i "s|image: .*backend:.*|image: ${BACKEND_IMAGE}:${TAG}|" k8s/backend-deployment.yaml
+          sed -i "s|image: .*frontend:.*|image: ${FRONTEND_IMAGE}:${TAG}|" k8s/frontend-deployment.yaml
+          # No sed needed: fresh checkout already has production host (realworld.example.com)
+
+      - name: Apply K8s manifests to production
+        run: |
+          kubectl apply -f k8s/backend-deployment.yaml  -n ${K8S_NAMESPACE}
+          kubectl apply -f k8s/frontend-deployment.yaml -n ${K8S_NAMESPACE}
+          kubectl apply -f k8s/ingress.yaml             -n ${K8S_NAMESPACE}
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/realworld-backend  -n ${K8S_NAMESPACE} --timeout=120s
+          kubectl rollout status deployment/realworld-frontend -n ${K8S_NAMESPACE} --timeout=120s

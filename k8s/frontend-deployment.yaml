@@ -15,10 +15,10 @@ spec:
         app: realworld-frontend
     spec:
       imagePullSecrets:
-        - name: gitlab-registry-secret
+        - name: ghcr-registry-secret
       containers:
         - name: frontend
-          image: registry.gitlab.com/mason-cognition/spring-boot-realworld-example-app/frontend:latest
+          image: ghcr.io/mbatchelor81/gitlab-migration/frontend:latest
           ports:
             - containerPort: 3000
           env:
