@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Extract short SHA
         id: sha
@@ -62,6 +64,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Set up JDK 11 (Temurin)
         uses: actions/setup-java@v4
@@ -95,6 +99,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Extract short SHA
         id: sha
@@ -114,8 +120,7 @@ jobs:
           TAG="${{ steps.sha.outputs.short }}"
           sed -i "s|image: .*backend:.*|image: ${BACKEND_IMAGE}:${TAG}|" k8s/backend-deployment.yaml
           sed -i "s|image: .*frontend:.*|image: ${FRONTEND_IMAGE}:${TAG}|" k8s/frontend-deployment.yaml
-          # Ensure production host in ingress
-          sed -i 's|staging.realworld.example.com|realworld.example.com|g' k8s/ingress.yaml
+          # No sed needed: fresh checkout already has production host (realworld.example.com)
 
       - name: Apply K8s manifests to production
         run: |
